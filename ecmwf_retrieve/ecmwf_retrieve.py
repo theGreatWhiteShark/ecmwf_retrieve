@@ -2,18 +2,27 @@
 ## Using the python 3.6 
 
 import os # Interaction with the operation system
+import copy # Copy objects without sideeffects (actual copying instead
+			# of references)
+import datetime
+import time # two time packages are necessary to get the current POSIX
+			# time. (Used as a session key)
 ## Package handling the access of the servers of the ECMWF
 from ecmwfapi import ECMWFDataServer
 
-def download_queries( server, options ):
+def download_queries( server, options_list ):
 	'''
 	   This function performs the actual download of the data set.
 
 	   server  - an ecmwfapi.ECMWFDataServer instance.
-	   options - a dictionary specifying the dataset and the target
-	             file 
+	   options_list - a list of dictionaries each specifying the
+	                  dataset and the target file of a valid ECMWF
+					  retrieve.
 	'''
-	server.retrieve( options )
+	for ooptions in options_list:
+		server.retrieve( ooptions )
+
+	return 0
 	
 def erainterim_default_options():
 	'''
@@ -145,12 +154,11 @@ def split_date_into_list_of_years( date_string ):
 	   The function expects the input string to be either of the
 	   format `1999-01-01` or `1999-01-01/to/2000-01-01`.
 
-	   Value: List containing the different years. The first and the
-	          last entry define the temporal range of the query.
+	   Value: List of strings defining the temporal range of a query.
 	'''
 	## Check the format of the input.
-	if date_string is not str:
-		raise Exception(
+	if type( date_string ) is not str:
+		raise TypeError(
 			'Wrong type of the "date_string" argument. A string is required.' )
 
 	## Split the string to extract the start and the end of the date
@@ -160,13 +168,12 @@ def split_date_into_list_of_years( date_string ):
 	if len( date_string_split ) == 1:
 		## Only one date is specified. Return the string without
 		return [ date_string_split ]
-	elif: len( date_string_split ) != 3:
-		raise Exception( 'Unexpected input format.' )
+	elif len( date_string_split ) != 3:
+		raise SyntaxError( 'Unexpected input format.' )
 	else:
 		## Verifying the format of the input
-		if len( date_string_split[ 0 ] ) != 10 or
-			len( date_string_split[ 2 ] ) != 10:
-			raise Exception( 'Unexpected input format.' )
+		if len( date_string_split[ 0 ] ) != 10 or len( date_string_split[ 2 ] ) != 10:
+			raise SyntaxError( 'Unexpected input format.' )
 		
 		## Extract the years of the query range as numerical values
 		## and generate a sequence of all years within it.
@@ -175,30 +182,73 @@ def split_date_into_list_of_years( date_string ):
 
 		## Sanity check of the extracted years.
 		if year_end < year_start:
-			raise Exception(
+			raise ValueError(
 				'Wrong format in the *date* key: Starting point dates after the end point.' )
-		elif: year_start == year_end:
+		elif year_start == year_end:
 			## Since the query is only over one year, there shouldn't
 			## be any problems with the maximum download size.
 			return [ date_string_split[ 0 ], date_string_split[ 2 ] ]
 		if year_start < 1890:
-			raise Expection( 
+			raise ValueError( 
 				'Wrong format in the *date* key: The ECWMF data set date back so many years?' )
-		if year_start > 2100:
-			raise Expection( 
+		if year_end > 2100:
+			raise ValueError( 
 				'Wrong format in the *date* key: The ECWMF data set date so far in the future?' )
 
+		## The start and end of the temperoral range have to be
+		## handled with care. For all other years it's just the
+		## XXXX-01-01 till the XXXX-12-31
 		## Each year, except of the first and last one, will just
 		## have the 1st of January as date. The two exceptions are
 		## added as is.
-		date_list = [ date_string_split[ 0 ] ]
-		date_list.extend( list( map( lambda ss: str( ss ) + '-01-01',
-									list( range( year_start + 1,
-												year_end ) ) ) ) )
-		date_list.append( date_string_split[ 2 ] )
+		date_list = [ date_string_split[ 0 ] + "/to/" + \
+						  str( year_start ) + "-12-31" ]
+		for ll in range( year_start + 1, year_end ):
+			date_list.append( str( ll ) + "-01-01/to/" + \
+							  str( ll ) + "-12-31" )
+							  
+		date_list.append( str( year_end ) + "-01-01/to/" + \
+				date_string_split[ 2 ] )
+		
 		return date_list
 
-def split_query_into_list_of_queries( options, 			
+def split_query_into_list_of_queries( options ):
+	'''
+	   Split the dictionary describing the dataset of the ECWMF
+	   retrieval into separate dictionaries according to the temporal
+	   range. 
+
+	   options - A dictionary specifying the dataset and the target
+	             file. You are free to use just a couple of options of
+				 the MARS service. The remaining ones (or all if
+				 missing) will be filled with those specified in
+				 `ecmwf_erainterim_default_options`.
+
+	   The splitting of the `date` key of the `options` argument will
+	   be performed using the `split_date_into_list_of_years`
+	   function.
+
+	   Returns a list of dictionaries with each one being a valid
+	   request.
+	'''
+
+	## Split the date into the individual years.
+	options_date_split = split_date_into_list_of_years(
+		options.get( 'date' ) )
+
+	## Create a list of option
+	options_list = []
+	for ll in range( len( options_date_split ) ):
+		options_list.append( copy.deepcopy( options ) )
+		## Use only one slide in the time domain
+		options_list[ ll ][ 'date' ] = options_date_split[ ll ]
+		## Write the slide to a separate output
+		options_list[ ll ][ 'target' ] = \
+		  ".".join( options_list[ ll ].get( 'target'
+											).split( "." )[ :-1 ] ) + \
+						'_' + str( ll ) + '_.nc'
+		
+	return options_list
 
 def retrieve( options = None ):
 	'''
@@ -235,43 +285,57 @@ def retrieve( options = None ):
 	'''
 	## Check the type of the provided input
 	if options is not None and type( options ) is not dict:
-		raise Exception(
+		raise TypeError(
 			'Wrong type of the "options" argument. A dict is required.' )
 	
 	## Integrate the specified options into the default ones.
-	default_options = eratinterim_default_options()
+	default_options = erainterim_default_options()
 
 	## In case the user supplied some options, override their
 	## corresponding counterpart in the default setting.
 	if options is not None:
 		for kkey in list( options.keys() ):
 			default_options[ kkey ] = options.get( kkey )
-
-	## Split the date into the individual years.
-	options_date_split = split_date_into_list_of_years(
-		default_options.get( 'date' ) )
+	options = default_options
 
 	## Separate the provided query in multiple ones according to the
 	## number of years provided in the temporal range.
-	options_split = split_query_into_list_of_queries(
-		default_options, options_date_split )
+	options_split = split_query_into_list_of_queries( options )
+
+	## In addition there will also be a session key created from the
+	## current time and date to identify all the files in the download
+	## folder produced by this script
+	session_key = int( time.mktime(
+		datetime.datetime.now().timetuple() ) )
+	## Append the session key to the filenames
+	for ll in range( len( options_split ) ):
+		options_split[ ll ][ 'target' ] = \
+		  ".".join( options_split[ ll ].get( 'target'
+											).split( "." )[ :-1 ] ) + \
+						'_' + str( session_key ) + '_.nc'
 
 	## Download the content in a folder named after the 'target' key in
 	## the options dictionary
-	if not os.path.isdir( options.get( 'target' ) ):
+	if not os.path.isdir( ".".join(
+		options.get( 'target' ).split( "." )[ : -1 ] ) ):
 		## This folder can be used by the user herself and the group
 		## she is belonging to.
 		## Mind the 'o' for an octal!
-		os.mkdir( options.get( 'target' ), 0o770 ) 
+		os.mkdir( ".".join( options.get( 'target'
+										 ).split( "." )[ : -1 ] ), 0o770 )
+
+	## Move to this directory, download the data, and jump back
+	## again.
+	old_dir = os.getcwd()
+	os.chdir( ".".join( options.get( 'target' ).split( "." )[ : -1 ] ) )
 
 	## Object representing the data server of the ECMWF
 	server = ECMWFDataServer()
 
 	## Download the list of provided queries
-	download_queries()
+	download_queries( server, options_split )
 
 	## Combine the individual NetCDF files into a single,
 	## comprehensive one.
-
 	
 	return 0
