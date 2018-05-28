@@ -3,3 +3,9 @@
 
 ## Python compilations
 /**/__pycache__/
+*.pyc
+
+## Resources of the package installation
+*.egg-info/
+build/
+dist/
