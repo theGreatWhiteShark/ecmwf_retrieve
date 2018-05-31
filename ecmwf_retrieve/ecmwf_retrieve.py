@@ -7,6 +7,7 @@ import copy # Copy objects without sideeffects (actual copying instead
 import datetime
 import time # two time packages are necessary to get the current POSIX
 			# time. (Used as a session key)
+import netCDF4 # Handling of the NetCDF files.
 ## Package handling the access of the servers of the ECMWF
 from ecmwfapi import ECMWFDataServer
 
@@ -31,8 +32,9 @@ def erainterim_default_options():
 	'''
 	default_options = {
 		## Uses an 'Operational Atmospheric Model'. This specifies
-		## the use of the default atmospheric model to simulate the
-		## climate in the ERA-Interim run. It has a higher
+		## the use of the default atmospheric model (IFS) to produce
+		## the forecast step in the reanalysis in the ERA-Interim run
+		## (the Cy31r2 system used for `oper`). It has a higher
 		## resolution then the one coupled to the Wave model. Get
 		## the full list at 
 		## http://apps.ecmwf.int/codes/grib/format/mars/stream/ 
@@ -43,7 +45,8 @@ def erainterim_default_options():
 		## retrieved. Get the full list
 		## http://apps.ecmwf.int/codes/grib/param-db/
 		## 2t  - 2 metre temperature in K
-		'param'     : "2t",
+		## sst - sea surface temperature in K
+		'param'     : "2t/sst",
 		## Download the representation of the data using longitude
 		## and latitude.
 		'repres'    : "ll",
@@ -52,22 +55,15 @@ def erainterim_default_options():
 		## https://software.ecmwf.int/wiki/display/WEBAPI/Available+ECMWF+Public+Datasets 
 		'dataset'   : "interim",
 		'class'     : "ei",
-		## Do not use any forecast but just the analysis.
-		'step'      : "0",
 		## Get all four time steps.
 		'time'      : "00/06/12/18",
 		## Download the whole time series.
-		'date'      : "1979-01-01/to/1989-02-31",
+		'date'      : "1979-01-01/to/2018-02-28",
 		## Type of field to be retrieved. Get the full list
 		## http://apps.ecmwf.int/codes/grib/format/mars/type/ 
-		## It is set to 'analysis'. What's an analysis? It
-		## indicated the state of the climate is set to a certain
-		## state (initial conditions/observations) and a forecast
-		## is run for e.g. a day. Afterwards the next observations
-		## in line are used to adjust the state of the model,
-		## another forecast is scheduled and so on.
-		## The 'reanalysis' indicates old observations are used. So
-		## what we want to have is the reanalysis of type analysis.
+		## It is set to 'analysis'. What's an analysis? It is a run of
+		## the 4D-Var system used to assimilate 'new' observation data
+		## into the current trajectory of the climate model. 
 		'type'      : "an",
 		## Get all data around the globe
 		'domain'    : "G",
@@ -94,14 +90,14 @@ def cera20_default_options():
 		## resolution then the one coupled to the Wave model. Get
 		## the full list at 
 		## http://apps.ecmwf.int/codes/grib/format/mars/stream/ 
-		'stream'    : "oper",
+		'stream'    : "enfo",
 		## Determining the level (height) of the data. Here: surface
 		'levtype'   : "sfc",
 		## Specify meteorolocal parameters, which are going to be
 		## retrieved. Get the full list
 		## http://apps.ecmwf.int/codes/grib/param-db/
 		## 2t  - 2 metre temperature in K
-		'param'     : "2t",
+		'param'     : "tp/mx2t/mn2t",
 		## Download the representation of the data using longitude
 		## and latitude.
 		'repres'    : "ll",
@@ -111,9 +107,9 @@ def cera20_default_options():
 		'dataset'   : "cera20c",
 		'class'     : "ep",
 		## Do not use any forecast but just the analysis.
-		'step'      : "0",
+		'step'      : "03/06/12",
 		## Get all four time steps.
-		'time'      : "00/03/06/09/12/15/18/21",
+		'time'      : "00/12",
 		## Download the whole time series.
 		'date'      : "1979-01-01/to/1989-02-31",
 		## Type of field to be retrieved. Get the full list
@@ -246,11 +242,81 @@ def split_query_into_list_of_queries( options ):
 		options_list[ ll ][ 'target' ] = \
 		  ".".join( options_list[ ll ].get( 'target'
 											).split( "." )[ :-1 ] ) + \
-						'_' + str( ll ) + '_.nc'
+						'_' + str( ll ).zfill( 3 ) + '_.nc'
 		
 	return options_list
 
-def retrieve( options = None ):
+def combine_netcdf_files( output_name, session_key = None, delete = True ):
+	'''
+	   Combines all NetCDF files downloaded during one MARS session (a
+	   single request split into the individual years) into a single
+	   file.
+	   
+	   output_name - String naming the combined netCDF file.
+	   session_key - String specifying the individual session. It is
+	                 generated using the current time and date.
+					 If `None`, all NetCDF files in the current
+	                 directory will be joined. Default = None.
+	   delete - Logical value specifying whether or not to delete
+                original NetCDF files joined by this function. Default
+	            = True
+
+	   This function assumes all the netCDF files, which should be
+	   combined, share exactly the same format. Any change in the
+	   dimensionality or amount of variables will cause the function
+	   to fail.
+
+	   Value: True, if the combination of the netCDF files was
+        	  successful. 
+	'''
+	## Get all NetCDF files present in the current directory.
+	files_present = os.listdir()
+	files_netcdf = [] # This list will contain all netCDF file names.
+	for ffile in files_present:
+		if ffile.find( '.nc' ) > -1:
+			## The file has an .nc extension
+			if session_key is None or \
+				ffile.find( str( session_key ) ) > -1:
+				## The session_key is valid
+				files_netcdf.append( ffile )
+
+	## Use the command line program `ncrcat` to join the NetCDF files.
+	## It is provided by the NCO toolkit http://nco.sourceforge.net/
+	print( "\nCombining the chunk requests into one NetCDF file...\n" )
+	os.system( "ncrcat " + " ".join( files_netcdf ) + \
+			   " -o " + str( output_name ) )
+
+	if delete:
+		## Delete all the retrieved files containing chunks of full
+		## request.
+		print( "\nDeleting the chunk request files...\n" )
+		for ffiles in files_netcdf:
+			os.remove( ffiles )
+
+	## The naming of the variables in the netCDF files and naming the
+	## the MARS request scheme are unfortunately
+	## inconsistent. E.g. the temperature are two metres height is
+	## downloaded by setting `'param' : '2t'` but in the netCDF file
+	## the quantity is called `t2m` instead.
+	# ## Open all netCDF files at once
+	# netcdf_input = netCDF4.MFDataset( files_netcdf, 'r' )
+	# ## File, which will hold the combined variables
+	# netcdf_output = netCDF4.Dataset( output_name, 'w' )
+
+	# ## 
+
+	# ## Copy the content to the output
+	# for kkey in netcdf_input.dimensions.keys():
+	# 	netcdf_output.createDimension(
+	# 		dimname = kkey,
+	# 		size = len( netcdf_input.dimensions.get( kkey ) ) )
+		
+	# for kkey in netcdf_input.variables.keys():
+	# 	netcdf_output.createVariable(
+	# 		kkey, netcdf_input.variables.get( kkey ).dtype,
+	# 		netcdf_input.variables.get( kkey ).dimensions )
+
+def retrieve( options = None, delete = True ):
 	'''
 	   This function downloads a data set of the ECMWF. 
 
@@ -259,6 +325,9 @@ def retrieve( options = None ):
 				 the MARS service. The remaining ones (or all if
 				 missing) will be filled with those specified in
 				 `ecmwf_erainterim_default_options`.
+	   delete - Logical value specifying whether or not to delete
+                original NetCDF files joined by this function. Default
+	            = True
 
 	   The function will internally generate an instance of an
 	   ecmwfapi.ECMWFDataServer object to handle the actual download.
@@ -314,21 +383,6 @@ def retrieve( options = None ):
 											).split( "." )[ :-1 ] ) + \
 						'_' + str( session_key ) + '_.nc'
 
-	## Download the content in a folder named after the 'target' key in
-	## the options dictionary
-	if not os.path.isdir( ".".join(
-		options.get( 'target' ).split( "." )[ : -1 ] ) ):
-		## This folder can be used by the user herself and the group
-		## she is belonging to.
-		## Mind the 'o' for an octal!
-		os.mkdir( ".".join( options.get( 'target'
-										 ).split( "." )[ : -1 ] ), 0o770 )
-
-	## Move to this directory, download the data, and jump back
-	## again.
-	old_dir = os.getcwd()
-	os.chdir( ".".join( options.get( 'target' ).split( "." )[ : -1 ] ) )
-
 	## Object representing the data server of the ECMWF
 	server = ECMWFDataServer()
 
@@ -337,5 +391,7 @@ def retrieve( options = None ):
 
 	## Combine the individual NetCDF files into a single,
 	## comprehensive one.
+	combine_netcdf_files( output_name = options.get( 'target' ),
+						  session_key = session_key, delete = delete )
 	
 	return 0
