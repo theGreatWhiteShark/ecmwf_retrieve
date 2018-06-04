@@ -46,17 +46,17 @@ class TestDictHandling( unittest.TestCase ):
 		print( 'Test, whether the ERA-Interim default object has the proper format\n' )
 		self.assertEqual( type( default_era ), dict )
 		self.assertEqual( "_".join( default_era.keys() ),
-						  'stream_levtype_param_repres_dataset_class_step_time_date_type_domain_grid_use_format_target'	)
+						  'stream_levtype_param_repres_dataset_class_time_date_type_domain_grid_use_format_target' )
 		self.assertEqual( "_".join( default_era.values() ),
-						  'oper_sfc_2t_ll_interim_ei_0_00/06/12/18_1979-01-01/to/1989-02-31_an_G_0.75/0.75_infrequent_netcdf_era-interim.nc' )
+						  'oper_sfc_2t/sst_ll_interim_ei_00/06/12/18_1979-01-01/to/2018-02-28_an_G_0.75/0.75_infrequent_netcdf_era-interim.nc' )
 
 	def test_cera_default( self ):
 		print( 'Test, whether the CERA-20C default object has the proper format\n' )
 		self.assertEqual( type( default_cera ), dict )
 		self.assertEqual( "_".join( default_cera.keys() ),
-						  'stream_levtype_param_repres_dataset_class_step_time_date_type_domain_grid_use_format_target'	)
+						  'stream_levtype_param_repres_dataset_class_step_time_date_type_domain_grid_use_format_target' )
 		self.assertEqual( "_".join( default_cera.values() ),
-						  'oper_sfc_2t_ll_cera20c_ep_0_00/03/06/09/12/15/18/21_1979-01-01/to/1989-02-31_an_G_0.75/0.75_infrequent_netcdf_cera-20c.nc' )
+						  'enfo_sfc_tp/mx2t/mn2t_ll_cera20c_ep_03/06/12_00/12_1979-01-01/to/1989-02-31_an_G_0.75/0.75_infrequent_netcdf_cera-20c.nc')
 
 	def test_retrieve_exceptions( self ):
 		print( 'Test, whether the retrieve function handles exceptions.\n' )
