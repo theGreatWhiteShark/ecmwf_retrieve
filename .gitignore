@@ -9,3 +9,6 @@
 *.egg-info/
 build/
 dist/
+
+## Ignore builds of the documentation
+doc/_build/
