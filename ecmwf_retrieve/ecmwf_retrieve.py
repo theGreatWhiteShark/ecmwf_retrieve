@@ -12,13 +12,32 @@ import netCDF4 # Handling of the NetCDF files.
 from ecmwfapi import ECMWFDataServer
 
 def download_queries( server, options_list ):
-	'''
-	   This function performs the actual download of the data set.
+	'''This function performs the actual download of the data set.
 
-	   server  - an ecmwfapi.ECMWFDataServer instance.
-	   options_list - a list of dictionaries each specifying the
-	                  dataset and the target file of a valid ECMWF
-					  retrieve.
+	It is intended to work with a list of requests. If the user wants
+	to download just a single file, she either has to use the raw
+	:func:`ecmwfapi.ECMWFDataServer.retrieve` function of the
+	**ecmwfapi** package or to embed the request into a list.
+
+	Parameters
+	----------
+	server : ecmwfapi.api.ECMWFDataServer
+	    An instance created using :class:`ecmwfapi.ECMWFDataServer`. 
+		It will be used to communicate with the MARS server of the
+		ECMWF and to retrieve the data. 
+	options_list : list
+	    A list of dictionaries. Each of the specifies the data set and
+	    the target file of a valid ECMWF retrieve.
+
+	Returns
+	-------
+	bool
+	    Returns 0 if no error was thrown during the download(s).
+
+	See Also
+	--------
+	retrieve : Function handling the whole request.
+	ecmwfapi.ECMWFDataServer.retrieve
 	'''
 	for ooptions in options_list:
 		server.retrieve( ooptions )
@@ -26,9 +45,33 @@ def download_queries( server, options_list ):
 	return 0
 	
 def erainterim_default_options():
-	'''
-	Returns a dictionary of the default options for the ERA-Interim
+	'''Returns a dictionary of the default options for the ERA-Interim
 	data set.
+
+	The default request is tailored to download the sea surface and
+	the 2 metre temperature created in the analysis step using the
+	operational atmospheric model. It will contain the whole grid
+	spanning the earth at all times up to March 28th 2018.
+
+	For a detailed description of the individual parameters please see
+	comments in the code of this function or the documentation of the
+	MARS server of the ECMWF.
+	https://software.ecmwf.int/wiki/display/UDOC/MARS+user+documentation
+
+	Parameters
+	----------
+
+	Returns
+	-------
+	dict
+	    An example request to download the ERA-Interim data set of the
+		ECMWF.
+
+	See Also
+	--------
+	retrieve : Function handling the whole request.
+	cera20_default_options : Function returning a request to download
+	    the CERA-20C data set.
 	'''
 	default_options = {
 		## Uses an 'Operational Atmospheric Model'. This specifies
@@ -79,9 +122,33 @@ def erainterim_default_options():
 	return default_options 
 
 def cera20_default_options():
-	'''
-	Returns a dictionary of the default options for the CERA-20C
+	'''Returns a dictionary of the default options for the CERA-20C
 	data set.
+
+	The default request is tailored to download the sea surface and
+	the 2 metre temperature created in the analysis step using the
+	operational atmospheric model. It will contain the whole grid
+	spanning the earth at all times up to March 28th 2018.
+
+	For a detailed description of the individual parameters please see
+	comments in the code of this function or the documentation of the
+	MARS server of the ECMWF.
+	https://software.ecmwf.int/wiki/display/UDOC/MARS+user+documentation
+
+	Parameters
+	----------
+
+	Returns
+	-------
+	dict
+	    An example request to download the CERA-20C data set of the
+		ECMWF.
+
+	See Also
+	--------
+	retrieve : Function handling the whole request.
+	erainterim_default_options : Function returning a request to download
+	    the ERA-Interim data set.
 	'''
 	default_options = {
 		## Uses an 'Operational Atmospheric Model'. This specifies
@@ -137,20 +204,47 @@ def cera20_default_options():
 	return default_options 
 
 def split_date_into_list_of_years( date_string ):
-	'''
-	   Takes the string residing in `date` key of the data set options
-	   and splits it into a list of date string if the series spans
-	   multiple years. 
+	'''Split a date range in a ECMWF request into a list of the
+	individual years.
 
-	   Since there is a fixed limit of the size of the data, which
-	   can be downloaded using a free account at the ECMWF servers
-	   (30GB), the request will be splitted into individual years and
-	   concatenated into a single NetCDF file later on.
+	Since there is a fixed limit of the size of the data, which
+	can be downloaded using a free account at the ECMWF servers
+	(30GB), the request will be splitted into individual years and
+	concatenated into a single NetCDF file later on.
+	
+	Parameters
+	----------
+	date_string : str
+	    A string specifying the temporal range of the data set. It
+	    is expected to be either of the format *1999-01-01* or
+	    *1999-01-01/to/2000-01-01*.
+	   
+	Returns
+	-------
+	list
+	    If the `date_string` is either a single date or just
+	    covers data within the range of a single year, the output
+	    will be list with `date_string` as its sole element.
+	    If, on the other hand, `date_string` spanned multiple years,
+	    the output will be a list with each element spanning a single
+	    year.
 
-	   The function expects the input string to be either of the
-	   format `1999-01-01` or `1999-01-01/to/2000-01-01`.
+	Raises:
+	   TypeError: If `date_string` is not a string.
+	   SyntaxError: If `date_string` is not of the format *1999-01-01* or *1999-01-01/to/2000-01-01*.
+	   ValueError: If the beginning of the temporal range in `date_string` starts before 1890, after the end of the range, or if the range ends later than 2100.
 
-	   Value: List of strings defining the temporal range of a query.
+	Notes
+	-----
+	Takes the string residing in the *date* key of a dictionary
+	specifying a request to the MARS API of the ECMWF.
+
+	See Also
+	--------
+	retrieve : Function handling the whole request.
+	split_query_into_list_of_queries : Split one request into several
+ 	   requests using the splitting of its *date* key performed by
+ 	   this function.
 	'''
 	## Check the format of the input.
 	if type( date_string ) is not str:
@@ -209,23 +303,25 @@ def split_date_into_list_of_years( date_string ):
 		return date_list
 
 def split_query_into_list_of_queries( options ):
-	'''
-	   Split the dictionary describing the dataset of the ECWMF
-	   retrieval into separate dictionaries according to the temporal
-	   range. 
+	'''Split the dictionary specifying a request to ECWMF server
+	separate dictionaries according to its temporal range. 
 
-	   options - A dictionary specifying the dataset and the target
-	             file. You are free to use just a couple of options of
-				 the MARS service. The remaining ones (or all if
-				 missing) will be filled with those specified in
-				 `ecmwf_erainterim_default_options`.
+	The splitting of the *date* key in `options` will be performed
+	using the :func:`split_date_into_list_of_years` function.
 
-	   The splitting of the `date` key of the `options` argument will
-	   be performed using the `split_date_into_list_of_years`
-	   function.
+	Parameters:
+	   options : dict:
+	      A dictionary specifying all parameters of the MARS API of
+		  ECMWF. For a full list of all available keywords please see 
+		  https://software.ecmwf.int/wiki/display/UDOC/MARS+user+documentation
 
-	   Returns a list of dictionaries with each one being a valid
-	   request.
+    Returns:
+	   list:
+	       A list of dictionaries with each one being a valid request via the MARS API.
+
+	See Also:
+	   retrieve : Function handling the whole request.
+	   split_date_into_list_of_years : Performs the splitting of the temporal range of `options` according to the string in `options.date`.
 	'''
 
 	## Split the date into the individual years.
@@ -247,27 +343,44 @@ def split_query_into_list_of_queries( options ):
 	return options_list
 
 def combine_netcdf_files( output_name, session_key = None, delete = True ):
-	'''
-	   Combines all NetCDF files downloaded during one MARS session (a
-	   single request split into the individual years) into a single
-	   file.
-	   
-	   output_name - String naming the combined netCDF file.
-	   session_key - String specifying the individual session. It is
-	                 generated using the current time and date.
-					 If `None`, all NetCDF files in the current
-	                 directory will be joined. Default = None.
-	   delete - Logical value specifying whether or not to delete
-                original NetCDF files joined by this function. Default
-	            = True
+	'''Combines all NetCDF files downloaded during one MARS session (a
+	single request split into the individual years) into a single file.
 
-	   This function assumes all the netCDF files, which should be
-	   combined, share exactly the same format. Any change in the
-	   dimensionality or amount of variables will cause the function
-	   to fail.
+	The combination itself will **not** be performed in Python itself
+	but the system function *ncrcat* will be called instead. Please
+	make sure the program is properly installed on your system.
+	http://nco.sf.net/
 
-	   Value: True, if the combination of the netCDF files was
-        	  successful. 
+	Parameters
+	----------
+	output_name : str
+	   String specifying the name of the combined netCDF file. In
+	   general this will be the value of the *target* key of the
+	   original ECMWF request.
+	session_key : int, optional
+	   String specifying the individual session. It is generated using
+	   the current time and date. If *None*, all NetCDF files in the
+	   current directory will be joined. Default = None.
+	delete : bool, optional
+	   Logical value specifying whether or not to delete the
+	   downloaded chunk NetCDF files joined by this function. Default
+	   = True. 
+
+	Returns
+	-------
+	int
+	   Returns 0 if everything worked out and no error was thrown.
+
+	Notes
+	-----
+	This function assumes all the netCDF files, which should be
+	combined, share exactly the same format. Any change in the
+	dimensionality or amount of variables will cause the function to
+	fail. 
+
+	See Also
+	--------
+	retrieve : Function handling the whole request.
 	'''
 	## Get all NetCDF files present in the current directory.
 	files_present = os.listdir()
@@ -292,65 +405,61 @@ def combine_netcdf_files( output_name, session_key = None, delete = True ):
 		print( "\nDeleting the chunk request files...\n" )
 		for ffiles in files_netcdf:
 			os.remove( ffiles )
-
-	## The naming of the variables in the netCDF files and naming the
-	## the MARS request scheme are unfortunately
-	## inconsistent. E.g. the temperature are two metres height is
-	## downloaded by setting `'param' : '2t'` but in the netCDF file
-	## the quantity is called `t2m` instead.
-	# ## Open all netCDF files at once
-	# netcdf_input = netCDF4.MFDataset( files_netcdf, 'r' )
-	# ## File, which will hold the combined variables
-	# netcdf_output = netCDF4.Dataset( output_name, 'w' )
-
-	# ## 
-
-	# ## Copy the content to the output
-	# for kkey in netcdf_input.dimensions.keys():
-	# 	netcdf_output.createDimension(
-	# 		dimname = kkey,
-	# 		size = len( netcdf_input.dimensions.get( kkey ) ) )
-		
-	# for kkey in netcdf_input.variables.keys():
-	# 	netcdf_output.createVariable(
-	# 		kkey, netcdf_input.variables.get( kkey ).dtype,
-	# 		netcdf_input.variables.get( kkey ).dimensions )
+			
+	return 0
 
 def retrieve( options = None, delete = True ):
-	'''
-	   This function downloads a data set of the ECMWF. 
+	'''Downloads a public data set of arbitrary size from the ECMWF
+	using only a free account.
 
-	   options - A dictionary specifying the dataset and the target
-	             file. You are free to use just a couple of options of
-				 the MARS service. The remaining ones (or all if
-				 missing) will be filled with those specified in
-				 `ecmwf_erainterim_default_options`.
-	   delete - Logical value specifying whether or not to delete
-                original NetCDF files joined by this function. Default
-	            = True
+	In order to not reach the limit of 30 GB maximum download size for
+	the free access to the public data sets of the ECWMF, regardless
+	of the amount of specified parameters and times, the query will be
+	split into the individual years, downloaded separately, and
+	combined into a single file afterwards. This kind of splitting is
+	performed in favor of downloading just one parameter a time since
+	it is less demanding for the servers of the ECMWF and thus
+	rewarded by a quicker introduction into their queueing system. In
+	addition the request for a single data set at all times in the
+	CERA-20C data set can easily exceed the 30GB limit.
 
-	   The function will internally generate an instance of an
-	   ecmwfapi.ECMWFDataServer object to handle the actual download.
+	The resulting data set will be stored in the current folder the
+	python script is called in.
 
-	   Using the second argument you can choose various parameters to
-	   determine the query to the ECMWF server. See
-	   https://software.ecmwf.int/wiki/display/UDOC/MARS+keywords for
-	   a comprehensive list of all possible parameter options.
-	   Per default the ones defined in the function
-	   `ecmwf_erainterim_default_options` will be used.
+	Parameters
+	----------
+	options : dict, optional
+	   A dictionary specifying all parameters of the MARS API of
+	   ECMWF. For a full list of all available keywords please see 
+	   https://software.ecmwf.int/wiki/display/UDOC/MARS+user+documentation
+	   You are free to use no or just a couple of options of the MARS
+	   service. The remaining ones (or all, if missing) will be filled
+	   with those specified in the output of the function
+	   :func:`ecmwf_erainterim_default_options`. Default = None.
+	delete : bool, optional
+	   Logical value specifying whether or not to delete the
+	   downloaded chunk NetCDF files joined by this function. Default
+	   = True. 
 
-	   In order to not reach the limit of 30 GB maximum download size
-	   for the free access to the public data sets of the ECWMF,
-	   regradless of the amount of specified parameters and times, the
-	   query will be split into the individual year, downloaded
-	   separately, and combined into a single file afterwards. This
-	   splitting is performed in favor of downloading just one
-	   parameter a time since it is less demanding for the servers of
-	   the ECMWF and thus rewarded by a quicker introduction into
-	   their queueing system.
-	   
-	   The resulting data set will be stored in a folder names
-	   according to the `dataset` field in the options.
+	Returns
+	-------
+	int
+	   Returns 0 if everything worked out and no error was thrown.
+
+	Notes
+	-----
+	The function will internally generate an instance of an
+	:class:`ecmwfapi.ECMWFDataServer` object to handle the actual download. 
+
+	See Also
+	--------
+	erainterim_default_options : Default options for a request to the
+	   MARS API of the ECMWF.
+	split_query_into_list_of_queries : Splits the original request
+	   into smaller parts, which do not exceed the 30GB limit.
+	download_queries : Downloads a list of requests.
+	combine_netcdf_files : Combines the individual requests into a
+	   single netCDF file.
 	'''
 	## Check the type of the provided input
 	if options is not None and type( options ) is not dict:
