@@ -1,0 +1,408 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Welcome to ecmwf_retrieve’s documentation! &#8212; ecmwf_retrieve 0.0.1 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">ecmwf_retrieve 0.0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="welcome-to-ecmwf-retrieve-s-documentation">
+<h1>Welcome to ecmwf_retrieve’s documentation!<a class="headerlink" href="#welcome-to-ecmwf-retrieve-s-documentation" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<span class="target" id="module-ecmwf_retrieve.ecmwf_retrieve"></span><dl class="function">
+<dt id="ecmwf_retrieve.ecmwf_retrieve.cera20_default_options">
+<code class="descclassname">ecmwf_retrieve.ecmwf_retrieve.</code><code class="descname">cera20_default_options</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ecmwf_retrieve.ecmwf_retrieve.cera20_default_options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a dictionary of the default options for the CERA-20C
+data set.</p>
+<p>The default request is tailored to download the sea surface and
+the 2 metre temperature created in the analysis step using the
+operational atmospheric model. It will contain the whole grid
+spanning the earth at all times up to March 28th 2018.</p>
+<p>For a detailed description of the individual parameters please see
+comments in the code of this function or the documentation of the
+MARS server of the ECMWF.
+<a class="reference external" href="https://software.ecmwf.int/wiki/display/UDOC/MARS+user+documentation">https://software.ecmwf.int/wiki/display/UDOC/MARS+user+documentation</a></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="docutils">
+<dt>An example request to download the CERA-20C data set of the</dt>
+<dd>ECMWF.</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<dl class="last docutils">
+<dt><a class="reference internal" href="#ecmwf_retrieve.ecmwf_retrieve.retrieve" title="ecmwf_retrieve.ecmwf_retrieve.retrieve"><code class="xref py py-func docutils literal"><span class="pre">retrieve()</span></code></a></dt>
+<dd>Function handling the whole request.</dd>
+<dt><a class="reference internal" href="#ecmwf_retrieve.ecmwf_retrieve.erainterim_default_options" title="ecmwf_retrieve.ecmwf_retrieve.erainterim_default_options"><code class="xref py py-func docutils literal"><span class="pre">erainterim_default_options()</span></code></a></dt>
+<dd>Function returning a request to download the ERA-Interim data set.</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ecmwf_retrieve.ecmwf_retrieve.combine_netcdf_files">
+<code class="descclassname">ecmwf_retrieve.ecmwf_retrieve.</code><code class="descname">combine_netcdf_files</code><span class="sig-paren">(</span><em>output_name</em>, <em>session_key=None</em>, <em>delete=True</em><span class="sig-paren">)</span><a class="headerlink" href="#ecmwf_retrieve.ecmwf_retrieve.combine_netcdf_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Combines all NetCDF files downloaded during one MARS session (a
+single request split into the individual years) into a single file.</p>
+<p>The combination itself will <strong>not</strong> be performed in Python itself
+but the system function <em>ncrcat</em> will be called instead. Please
+make sure the program is properly installed on your system.
+<a class="reference external" href="http://nco.sf.net/">http://nco.sf.net/</a></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>output_name</strong> (<em>str</em>) – String specifying the name of the combined netCDF file. In
+general this will be the value of the <em>target</em> key of the
+original ECMWF request.</li>
+<li><strong>session_key</strong> (<em>int</em><em>, </em><em>optional</em>) – String specifying the individual session. It is generated using
+the current time and date. If <em>None</em>, all NetCDF files in the
+current directory will be joined. Default = None.</li>
+<li><strong>delete</strong> (<em>bool</em><em>, </em><em>optional</em>) – Logical value specifying whether or not to delete the
+downloaded chunk NetCDF files joined by this function. Default
+= True.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Returns 0 if everything worked out and no error was thrown.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">int</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>This function assumes all the netCDF files, which should be
+combined, share exactly the same format. Any change in the
+dimensionality or amount of variables will cause the function to
+fail.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<dl class="last docutils">
+<dt><a class="reference internal" href="#ecmwf_retrieve.ecmwf_retrieve.retrieve" title="ecmwf_retrieve.ecmwf_retrieve.retrieve"><code class="xref py py-func docutils literal"><span class="pre">retrieve()</span></code></a></dt>
+<dd>Function handling the whole request.</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ecmwf_retrieve.ecmwf_retrieve.download_queries">
+<code class="descclassname">ecmwf_retrieve.ecmwf_retrieve.</code><code class="descname">download_queries</code><span class="sig-paren">(</span><em>server</em>, <em>options_list</em><span class="sig-paren">)</span><a class="headerlink" href="#ecmwf_retrieve.ecmwf_retrieve.download_queries" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function performs the actual download of the data set.</p>
+<p>It is intended to work with a list of requests. If the user wants
+to download just a single file, she either has to use the raw
+<code class="xref py py-func docutils literal"><span class="pre">ecmwfapi.ECMWFDataServer.retrieve()</span></code> function of the
+<strong>ecmwfapi</strong> package or to embed the request into a list.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>server</strong> (<em>ecmwfapi.api.ECMWFDataServer</em>) – <dl class="docutils">
+<dt>An instance created using <code class="xref py py-class docutils literal"><span class="pre">ecmwfapi.ECMWFDataServer</span></code>.</dt>
+<dd>It will be used to communicate with the MARS server of the
+ECMWF and to retrieve the data.</dd>
+</dl>
+</li>
+<li><strong>options_list</strong> (<em>list</em>) – A list of dictionaries. Each of the specifies the data set and
+the target file of a valid ECMWF retrieve.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Returns 0 if no error was thrown during the download(s).</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">bool</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<dl class="docutils">
+<dt><a class="reference internal" href="#ecmwf_retrieve.ecmwf_retrieve.retrieve" title="ecmwf_retrieve.ecmwf_retrieve.retrieve"><code class="xref py py-func docutils literal"><span class="pre">retrieve()</span></code></a></dt>
+<dd>Function handling the whole request.</dd>
+</dl>
+<p class="last"><code class="xref py py-func docutils literal"><span class="pre">ecmwfapi.ECMWFDataServer.retrieve()</span></code></p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ecmwf_retrieve.ecmwf_retrieve.erainterim_default_options">
+<code class="descclassname">ecmwf_retrieve.ecmwf_retrieve.</code><code class="descname">erainterim_default_options</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ecmwf_retrieve.ecmwf_retrieve.erainterim_default_options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a dictionary of the default options for the ERA-Interim
+data set.</p>
+<p>The default request is tailored to download the sea surface and
+the 2 metre temperature created in the analysis step using the
+operational atmospheric model. It will contain the whole grid
+spanning the earth at all times up to March 28th 2018.</p>
+<p>For a detailed description of the individual parameters please see
+comments in the code of this function or the documentation of the
+MARS server of the ECMWF.
+<a class="reference external" href="https://software.ecmwf.int/wiki/display/UDOC/MARS+user+documentation">https://software.ecmwf.int/wiki/display/UDOC/MARS+user+documentation</a></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="docutils">
+<dt>An example request to download the ERA-Interim data set of the</dt>
+<dd>ECMWF.</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<dl class="last docutils">
+<dt><a class="reference internal" href="#ecmwf_retrieve.ecmwf_retrieve.retrieve" title="ecmwf_retrieve.ecmwf_retrieve.retrieve"><code class="xref py py-func docutils literal"><span class="pre">retrieve()</span></code></a></dt>
+<dd>Function handling the whole request.</dd>
+<dt><a class="reference internal" href="#ecmwf_retrieve.ecmwf_retrieve.cera20_default_options" title="ecmwf_retrieve.ecmwf_retrieve.cera20_default_options"><code class="xref py py-func docutils literal"><span class="pre">cera20_default_options()</span></code></a></dt>
+<dd>Function returning a request to download the CERA-20C data set.</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ecmwf_retrieve.ecmwf_retrieve.retrieve">
+<code class="descclassname">ecmwf_retrieve.ecmwf_retrieve.</code><code class="descname">retrieve</code><span class="sig-paren">(</span><em>options=None</em>, <em>delete=True</em><span class="sig-paren">)</span><a class="headerlink" href="#ecmwf_retrieve.ecmwf_retrieve.retrieve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Downloads a public data set of arbitrary size from the ECMWF
+using only a free account.</p>
+<p>In order to not reach the limit of 30 GB maximum download size for
+the free access to the public data sets of the ECWMF, regardless
+of the amount of specified parameters and times, the query will be
+split into the individual years, downloaded separately, and
+combined into a single file afterwards. This kind of splitting is
+performed in favor of downloading just one parameter a time since
+it is less demanding for the servers of the ECMWF and thus
+rewarded by a quicker introduction into their queueing system. In
+addition the request for a single data set at all times in the
+CERA-20C data set can easily exceed the 30GB limit.</p>
+<p>The resulting data set will be stored in the current folder the
+python script is called in.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>options</strong> (<em>dict</em><em>, </em><em>optional</em>) – A dictionary specifying all parameters of the MARS API of
+ECMWF. For a full list of all available keywords please see
+<a class="reference external" href="https://software.ecmwf.int/wiki/display/UDOC/MARS+user+documentation">https://software.ecmwf.int/wiki/display/UDOC/MARS+user+documentation</a>
+You are free to use no or just a couple of options of the MARS
+service. The remaining ones (or all, if missing) will be filled
+with those specified in the output of the function
+<code class="xref py py-func docutils literal"><span class="pre">ecmwf_erainterim_default_options()</span></code>. Default = None.</li>
+<li><strong>delete</strong> (<em>bool</em><em>, </em><em>optional</em>) – Logical value specifying whether or not to delete the
+downloaded chunk NetCDF files joined by this function. Default
+= True.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Returns 0 if everything worked out and no error was thrown.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">int</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>The function will internally generate an instance of an
+<code class="xref py py-class docutils literal"><span class="pre">ecmwfapi.ECMWFDataServer</span></code> object to handle the actual download.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<dl class="last docutils">
+<dt><a class="reference internal" href="#ecmwf_retrieve.ecmwf_retrieve.erainterim_default_options" title="ecmwf_retrieve.ecmwf_retrieve.erainterim_default_options"><code class="xref py py-func docutils literal"><span class="pre">erainterim_default_options()</span></code></a></dt>
+<dd>Default options for a request to the MARS API of the ECMWF.</dd>
+<dt><a class="reference internal" href="#ecmwf_retrieve.ecmwf_retrieve.split_query_into_list_of_queries" title="ecmwf_retrieve.ecmwf_retrieve.split_query_into_list_of_queries"><code class="xref py py-func docutils literal"><span class="pre">split_query_into_list_of_queries()</span></code></a></dt>
+<dd>Splits the original request into smaller parts, which do not exceed the 30GB limit.</dd>
+<dt><a class="reference internal" href="#ecmwf_retrieve.ecmwf_retrieve.download_queries" title="ecmwf_retrieve.ecmwf_retrieve.download_queries"><code class="xref py py-func docutils literal"><span class="pre">download_queries()</span></code></a></dt>
+<dd>Downloads a list of requests.</dd>
+<dt><a class="reference internal" href="#ecmwf_retrieve.ecmwf_retrieve.combine_netcdf_files" title="ecmwf_retrieve.ecmwf_retrieve.combine_netcdf_files"><code class="xref py py-func docutils literal"><span class="pre">combine_netcdf_files()</span></code></a></dt>
+<dd>Combines the individual requests into a single netCDF file.</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ecmwf_retrieve.ecmwf_retrieve.split_date_into_list_of_years">
+<code class="descclassname">ecmwf_retrieve.ecmwf_retrieve.</code><code class="descname">split_date_into_list_of_years</code><span class="sig-paren">(</span><em>date_string</em><span class="sig-paren">)</span><a class="headerlink" href="#ecmwf_retrieve.ecmwf_retrieve.split_date_into_list_of_years" title="Permalink to this definition">¶</a></dt>
+<dd><p>Split a date range in a ECMWF request into a list of the
+individual years.</p>
+<p>Since there is a fixed limit of the size of the data, which
+can be downloaded using a free account at the ECMWF servers
+(30GB), the request will be splitted into individual years and
+concatenated into a single NetCDF file later on.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>date_string</strong> (<em>str</em>) – A string specifying the temporal range of the data set. It
+is expected to be either of the format <em>1999-01-01</em> or
+<em>1999-01-01/to/2000-01-01</em>.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><ul class="simple">
+<li><em>list</em> – If the <cite>date_string</cite> is either a single date or just
+covers data within the range of a single year, the output
+will be list with <cite>date_string</cite> as its sole element.
+If, on the other hand, <cite>date_string</cite> spanned multiple years,
+the output will be a list with each element spanning a single
+year.</li>
+<li><em>Raises</em> – TypeError: If <cite>date_string</cite> is not a string.
+SyntaxError: If <cite>date_string</cite> is not of the format <em>1999-01-01</em> or <em>1999-01-01/to/2000-01-01</em>.
+ValueError: If the beginning of the temporal range in <cite>date_string</cite> starts before 1890, after the end of the range, or if the range ends later than 2100.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>Takes the string residing in the <em>date</em> key of a dictionary
+specifying a request to the MARS API of the ECMWF.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<dl class="last docutils">
+<dt><a class="reference internal" href="#ecmwf_retrieve.ecmwf_retrieve.retrieve" title="ecmwf_retrieve.ecmwf_retrieve.retrieve"><code class="xref py py-func docutils literal"><span class="pre">retrieve()</span></code></a></dt>
+<dd>Function handling the whole request.</dd>
+<dt><a class="reference internal" href="#ecmwf_retrieve.ecmwf_retrieve.split_query_into_list_of_queries" title="ecmwf_retrieve.ecmwf_retrieve.split_query_into_list_of_queries"><code class="xref py py-func docutils literal"><span class="pre">split_query_into_list_of_queries()</span></code></a></dt>
+<dd>Split one request into several requests using the splitting of its <em>date</em> key performed by this function.</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ecmwf_retrieve.ecmwf_retrieve.split_query_into_list_of_queries">
+<code class="descclassname">ecmwf_retrieve.ecmwf_retrieve.</code><code class="descname">split_query_into_list_of_queries</code><span class="sig-paren">(</span><em>options</em><span class="sig-paren">)</span><a class="headerlink" href="#ecmwf_retrieve.ecmwf_retrieve.split_query_into_list_of_queries" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Split the dictionary specifying a request to ECWMF server</dt>
+<dd><p class="first">separate dictionaries according to its temporal range.</p>
+<p>The splitting of the <em>date</em> key in <cite>options</cite> will be performed
+using the <a class="reference internal" href="#ecmwf_retrieve.ecmwf_retrieve.split_date_into_list_of_years" title="ecmwf_retrieve.ecmwf_retrieve.split_date_into_list_of_years"><code class="xref py py-func docutils literal"><span class="pre">split_date_into_list_of_years()</span></code></a> function.</p>
+<dl class="last docutils">
+<dt>Parameters:</dt>
+<dd><dl class="first last docutils">
+<dt>options <span class="classifier-delimiter">:</span> <span class="classifier">dict:</span></dt>
+<dd><dl class="first last docutils">
+<dt>A dictionary specifying all parameters of the MARS API of</dt>
+<dd>ECMWF. For a full list of all available keywords please see
+<a class="reference external" href="https://software.ecmwf.int/wiki/display/UDOC/MARS+user+documentation">https://software.ecmwf.int/wiki/display/UDOC/MARS+user+documentation</a></dd>
+</dl>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A list of dictionaries with each one being a valid request via the MARS API.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list<dl class="docutils">
+<dt>See Also:</dt>
+<dd>retrieve : Function handling the whole request.
+split_date_into_list_of_years : Performs the splitting of the temporal range of <cite>options</cite> according to the string in <cite>options.date</cite>.</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></li>
+</ul>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">ecmwf_retrieve 0.0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, theGreatWhiteShark.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.6.
+    </div>
+  </body>
+</html>
