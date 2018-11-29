@@ -1,3 +1,8 @@
+# v0.1.1*6000
+- GitLab CI automation to test the installation of the package and the
+  generation of its documentation
+- Replacing the links to Github in the `README.md` with links to GitLab
+
 # v0.1.0
 - Mention Python version and `setuptools` dependency in README.md
 - Sorting the downloaded NetCDF files before joining them all

@@ -50,7 +50,7 @@ guide for instructions.
 First, clone the package to your local computer
 
 ``` bash
-git clone https://github.com/theGreatWhiteShark/ecmwf_retrieve
+git clone https://gitlab.com/theGreatWhiteShark/ecmwf_retrieve
 ```
 
 jump to the folder containing the project, and install it using the
