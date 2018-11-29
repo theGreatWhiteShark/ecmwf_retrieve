@@ -1,0 +1,13 @@
+image: wikitolearn/python35
+
+test:
+  script:
+    ## Get the newest version of all dependencies
+    - apt update
+    - apt-get install -y python3-sphinx
+    - pip3 install ecmwf-api-client sphinxcontrib-napoleon sphinx
+    ## Install the package
+    - python3 setup.py install
+    ## Compile the documentation
+    - cd doc
+    - make html
