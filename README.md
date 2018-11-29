@@ -1,7 +1,7 @@
-A wrapper library around the [Python
-package](https://software.ecmwf.int/wiki/display/WEBAPI/Access+ECMWF+Public+Datasets)
+A Python **3** wrapper library around the
+[package](https://software.ecmwf.int/wiki/display/WEBAPI/Access+ECMWF+Public+Datasets)
 provided by the [ECMWF](https://software.ecmwf.int/wiki/) to download
-data sets via the MARS API.
+data sets via its MARS API.
 
 # Motivation
 
@@ -20,11 +20,12 @@ all the downloaded netCDF files into a single file afterwards. Note:
 # Requirements
 
 Make sure you have the [netCDF
-operator](http://nco.sourceforge.net/) tools installed on your system.
+operator](http://nco.sourceforge.net/) tools and the `setuptools`
+Python package installed on your system.
 
 ``` bash
 ## On Debian-based systems
-sudo apt install nco
+sudo apt install nco python3-setuptools
 ```
 Or, if you are working with Anaconda
 
