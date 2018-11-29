@@ -396,7 +396,7 @@ def combine_netcdf_files( output_name, session_key = None, delete = True ):
 	## Use the command line program `ncrcat` to join the NetCDF files.
 	## It is provided by the NCO toolkit http://nco.sourceforge.net/
 	print( "\nCombining the chunk requests into one NetCDF file...\n" )
-	os.system( "ncrcat " + " ".join( files_netcdf ) + \
+	os.system( "ncrcat " + " ".join( sorted( files_netcdf ) ) + \
 			   " -o " + str( output_name ) )
 
 	if delete:
