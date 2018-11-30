@@ -30,14 +30,14 @@ sudo apt install nco python3-setuptools
 Or, if you are working with Anaconda
 
 ``` bash
-conda install -c conda-forge nco
+conda install -c conda-forge nco setuptools
 ```
 
-In addition, be sure you have the **netcdf4** and **ecmwfapi** package
+In addition, be sure you have the `netcdf4` and `ecmwfapi` package
 installed.
 
 ``` bash
-pip install https://software.ecmwf.int/wiki/download/attachments/56664858/ecmwf-api-client-python.tgz
+pip3 install netcdf4 ecmwf-api-client
 ```
 
 Apart from the requirements on the software side you still need to
@@ -63,15 +63,15 @@ python setup.py install
 
 # Documentation
 
-The documentation of the project is provided as *HTML* file and can be
-accessed (from the root of the repository) via
+The documentation of the project is provided as a *HTML* file and can
+be accessed (from the root of the repository) via
 
 ``` bash
 firefox doc/_build/html/index.html
 ```
 
-If you want to build the documentation on your own, be sure to have
-both the **sphinx** and **sphinxcontrib-napoleon** package
+If you want to build the documentation on your own, be sure you have
+both the `sphinx` and `sphinxcontrib-napoleon` package
 installed. Afterwards, jump to the *doc* folder and compile the it to
 the format you are interested in. E.g.
 
@@ -83,11 +83,11 @@ make html
 
 # Usage
 
-The main function of the provided package is called *retrieve* as in
+The main function of the provided package is called `retrieve` as in
 the package provided by the ECMWF. But it also comes with some
 convenience functions specifying default parameters for a ERA-Interim
 requests allowing the user to just specify the key-value pairs she
-once to alter.
+wants to alter.
 
 ``` python
 # Load the module as 'ec'
